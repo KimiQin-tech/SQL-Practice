@@ -1,0 +1,96 @@
+TASK A:Display a list of all property names and their property id’s for Owner Id: 1426.
+SELECT [dbo].[OwnerProperty].[PropertyId],
+	[dbo].[Property].[Name] AS PropertyName 
+	FROM [dbo].[OwnerProperty] INNER JOIN [dbo].[Property] 
+	ON [dbo].[OwnerProperty].[PropertyId] = [dbo].[Property].[Id] 
+	WHERE [dbo].[OwnerProperty].[OwnerId] =1426
+
+TASK B:Display the current home value for each property in question a).
+SELECT [dbo].[OwnerProperty].[PropertyId],
+	   [dbo].[Property].[Name] AS PropertyName,
+	   [dbo].[PropertyHomeValue].[Value] AS HomeValue 
+	   FROM [dbo].[OwnerProperty] INNER JOIN [dbo].[Property] 
+	   ON ([dbo].[OwnerProperty].[PropertyId] = [dbo].[Property].[Id]) 
+	   INNER JOIN [dbo].[PropertyHomeValue]
+	   ON ([dbo].[OwnerProperty].[PropertyId] = [dbo].[PropertyHomeValue].[PropertyId])
+	   WHERE [dbo].[OwnerProperty].[OwnerId] =1426
+TASK C:For each property in question a), return the following:                                                                      
+  i:Using rental payment amount, rental payment frequency, tenant start date and tenant end date to write a query that returns the sum of all payments from start date to end date. 
+	SELECT [dbo].[OwnerProperty].[PropertyId],
+	   [dbo].[Property].[Name] AS PropertyName,
+	   [dbo].[PropertyHomeValue].[Value] AS HomeValue,
+	   [dbo].[PropertyRentalPayment].[Amount],[FrequencyType],
+	   [dbo].[TenantPaymentFrequencies].[Code] AS PaymentType,
+	   [dbo].[TenantProperty].[StartDate],[EndDate],
+	   DATEDIFF ( WEEK , [TenantProperty].[StartDate] , [dbo].[TenantProperty].[EndDate]) AS Duration_Week,
+	   CASE
+	   WHEN [FrequencyType] = 1 THEN DATEDIFF ( WEEK , [TenantProperty].[StartDate] , [dbo].[TenantProperty].[EndDate])*[Amount]
+	   WHEN [FrequencyType] = 2 THEN (DATEDIFF ( WEEK , [TenantProperty].[StartDate] , [dbo].[TenantProperty].[EndDate])/2)*[Amount]
+	   ELSE DATEDIFF ( MONTH , [TenantProperty].[StartDate] , [dbo].[TenantProperty].[EndDate])*[Amount]
+	   END AS SumpfPayment
+	   FROM [dbo].[OwnerProperty] INNER JOIN [dbo].[Property] 
+	   ON ([dbo].[OwnerProperty].[PropertyId] = [dbo].[Property].[Id]) 
+	   INNER JOIN [dbo].[PropertyHomeValue]
+	   ON ([dbo].[OwnerProperty].[PropertyId] = [dbo].[PropertyHomeValue].[PropertyId])
+	   INNER JOIN [dbo].[PropertyRentalPayment]
+	   ON ([dbo].[OwnerProperty].[PropertyId] = [dbo].[PropertyRentalPayment].[PropertyId])
+	   INNER JOIN [dbo].[TenantPaymentFrequencies]
+	   ON ([dbo].[PropertyRentalPayment].[FrequencyType] =[dbo].[TenantPaymentFrequencies].[Id])
+	   INNER JOIN [dbo].[TenantProperty]
+	   ON ([dbo].[OwnerProperty].[PropertyId] = [dbo].[TenantProperty].[PropertyId])
+	   WHERE [dbo].[OwnerProperty].[OwnerId] =1426
+	ii:Display the yield. 
+	SELECT [dbo].[OwnerProperty].[PropertyId],
+	   [dbo].[Property].[Name] AS PropertyName,
+	   [dbo].[PropertyHomeValue].[Value] AS HomeValue,
+	   [dbo].[PropertyRentalPayment].[Amount],[FrequencyType],
+	   [dbo].[TenantPaymentFrequencies].[Code] AS PaymentType,
+	   [dbo].[TenantProperty].[StartDate],[EndDate],
+	   DATEDIFF ( WEEK , [TenantProperty].[StartDate] , [dbo].[TenantProperty].[EndDate]) AS Duration_Week,
+	   CASE
+	   WHEN [FrequencyType] = 1 THEN DATEDIFF ( WEEK , [TenantProperty].[StartDate] , [dbo].[TenantProperty].[EndDate])*[Amount]
+	   WHEN [FrequencyType] = 2 THEN (DATEDIFF ( WEEK , [TenantProperty].[StartDate] , [dbo].[TenantProperty].[EndDate])/2)*[Amount]
+	   ELSE DATEDIFF ( MONTH , [TenantProperty].[StartDate] , [dbo].[TenantProperty].[EndDate])*[Amount]
+	   END AS SumpfPayment,
+	   CASE 
+	   WHEN [FrequencyType] = 1 THEN (DATEDIFF ( WEEK , [TenantProperty].[StartDate] , [dbo].[TenantProperty].[EndDate])*[Amount])/[dbo].[PropertyHomeValue].[Value]*100
+	   WHEN [FrequencyType] = 2 THEN ((DATEDIFF ( WEEK , [TenantProperty].[StartDate] , [dbo].[TenantProperty].[EndDate])/2)*[Amount])/[dbo].[PropertyHomeValue].[Value]*100
+	   ELSE (DATEDIFF (MONTH , [TenantProperty].[StartDate] , [dbo].[TenantProperty].[EndDate])*[Amount])/[dbo].[PropertyHomeValue].[Value]*100
+	   END AS Yield
+	   FROM [dbo].[OwnerProperty] INNER JOIN [dbo].[Property] 
+	   ON ([dbo].[OwnerProperty].[PropertyId] = [dbo].[Property].[Id]) 
+	   INNER JOIN [dbo].[PropertyHomeValue]
+	   ON ([dbo].[OwnerProperty].[PropertyId] = [dbo].[PropertyHomeValue].[PropertyId])
+	   INNER JOIN [dbo].[PropertyRentalPayment]
+	   ON ([dbo].[OwnerProperty].[PropertyId] = [dbo].[PropertyRentalPayment].[PropertyId])
+	   INNER JOIN [dbo].[TenantPaymentFrequencies]
+	   ON ([dbo].[PropertyRentalPayment].[FrequencyType] =[dbo].[TenantPaymentFrequencies].[Id])
+	   INNER JOIN [dbo].[TenantProperty]
+	   ON ([dbo].[OwnerProperty].[PropertyId] = [dbo].[TenantProperty].[PropertyId])
+	   WHERE [dbo].[OwnerProperty].[OwnerId] =1426
+TASK D:Display all the jobs available in the marketplace (jobs that owners have advertised for service suppliers).
+  SELECT [dbo].[ServiceProviderJobStatus].[Name], *
+	FROM [dbo].[Job]
+	INNER JOIN [dbo].[ServiceProviderJobStatus]
+	ON ([dbo].[Job].[JobStatusId] = [dbo].[ServiceProviderJobStatus].[Id])
+	WHERE [dbo].[ServiceProviderJobStatus].[Name] LIKE 'Open'
+TASK E:Display all property names, current tenants first and last names and rental payments per week/ fortnight/month for the properties in question a). 
+  SELECT 
+	[dbo].[Property].[Name] AS PropertyName,
+	[dbo].[Person].[FirstName],[LastName],
+	[dbo].[TenantPaymentFrequencies].[Code] AS PaymentType,
+	[dbo].[TenantProperty].[TenantId],
+	[dbo].[PropertyRentalPayment].[Amount]
+	FROM  [dbo].[Property] INNER JOIN  [dbo].[OwnerProperty]
+	ON ([dbo].[Property].[Id] = [dbo].[OwnerProperty].[PropertyId])
+	INNER JOIN [dbo].[PropertyRentalPayment]
+	ON ([dbo].[OwnerProperty].[PropertyId] = [dbo].[PropertyRentalPayment].[PropertyId])
+	INNER JOIN [dbo].[TenantPaymentFrequencies]
+	ON ([dbo].[PropertyRentalPayment].[FrequencyType] =[dbo].[TenantPaymentFrequencies].[Id])
+	INNER JOIN [dbo].[TenantProperty]
+	ON ([dbo].[OwnerProperty].[PropertyId] = [dbo].[TenantProperty].[PropertyId])
+	INNER JOIN [dbo].[Tenant]
+	ON ([dbo].[Tenant].[Id] = [dbo].[TenantProperty].[TenantId])
+	INNER JOIN [dbo].[Person]
+	ON ([dbo].[Person].[ID] = [dbo].[Tenant].[Id])
+	WHERE [dbo].[OwnerProperty].[OwnerId] =1426
